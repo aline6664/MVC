@@ -17,6 +17,21 @@ class Cliente {
         $this->conexao = $db;
     }
 
+    public function criar() {
+        // inserir usando parâmetros
+        $comandoSQL = 'INSERT INTO ' . $this->tableName . ' (nome, email, telefone) VALUES (:param1, :param2, :param3)';
+        try {
+            $acesso = $this->conexao->prepare($comandoSQL);
+            $acesso->bindParam(':param1', $nome);
+            $acesso->bindParam(':param2', $email);
+            $acesso->bindParam(':param3', $telefone);
+            $acesso->execute();
+        }
+        catch (PDOException $erro) {
+            echo "Erro ao inserir na tabela 'clientes': " . $erro->getMessage();
+        }
+    }
+
     public function buscarTodos() {
         $comandoSQL = "SELECT * FROM " . $this->tableName;
         try {
@@ -36,26 +51,10 @@ class Cliente {
             $acesso = $this->conexao->prepare($comandoSQL);
             $acesso->bindParam(':nome', $nomeBusca); // passando o parâmetro para o comando SQL
             $acesso->execute();
-            return $acesso->fetchAll(PDO::FETCH_ASSOC); // Retorna as linhas encontradas
+            return $acesso->fetchAll(PDO::FETCH_ASSOC); // retorna as linhas encontradas
         }
         catch (PDOException $erro) {
             echo "Erro ao recuperar o cliente por nome: " . $erro->getMessage();
-        }
-    }
-
-    public function inserir() {
-        // executar INSERT into clientes usando parâmetros
-        $comandoSQL = 'INSERT INTO ' . $this->tableName . ' (id, nome, email, telefone) VALUES (:param1, :param2, :param3, :param4)';
-        try {
-            $acesso = $this->conexao->prepare($comandoSQL);
-            $acesso->bindParam(':param1', $id);
-            $acesso->bindParam(':param2', $nome);
-            $acesso->bindParam(':param3', $email);
-            $acesso->bindParam(':param4', $telefone);
-            $acesso->execute();
-        }
-        catch (PDOException $erro) {
-            echo "Erro ao inserir na tabela Cliente: " . $erro->getMessage();
         }
     }
 
