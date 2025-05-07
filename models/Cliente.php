@@ -1,6 +1,6 @@
 <?php
 
-// a classe Cliente que vai acessar e buscar no banco de dados
+// A classe Cliente que vai acessar e buscar no banco de dados
 
 class Cliente {
     // atributos
@@ -17,9 +17,10 @@ class Cliente {
         $this->conexao = $db;
     }
 
+    // REGISTRAR CLIENTE
     public function criar() {
         // inserir usando parâmetros
-        $comandoSQL = 'INSERT INTO ' . $this->tableName . ' (nome, email, telefone) VALUES (:param1, :param2, :param3)';
+        $comandoSQL = "INSERT INTO {$this->tableName} (nome, email, telefone) VALUES (:param1, :param2, :param3)";
         try {
             $acesso = $this->conexao->prepare($comandoSQL);
             $acesso->bindParam(':param1', $nome);
@@ -32,21 +33,23 @@ class Cliente {
         }
     }
 
-    public function buscarTodos() {
-        $comandoSQL = "SELECT * FROM " . $this->tableName;
+    // LISTAR TODOS CLIENTES REGISTRADOS
+    public function listar() {
+        $comandoSQL = "SELECT * FROM . {$this->table_name} ORDER BY id DESC"; // ordenar por ID
         try {
             $acesso = $this->conexao->prepare($comandoSQL); // prepare() valida o comando SQL para o acesso
             $acesso->execute(); // executa o comando SQL
             return $acesso;
         }
         catch (PDOException $erro) {
-            echo "Erro ao buscar os clientes: " . $erro->getMessage();
+            echo "Erro ao listar os clientes: " . $erro->getMessage();
         }
     }
 
-    public function buscar($nomeBusca) {
-        // retornar a linha da tabela com o nome igual
-        $comandoSQL = 'SELECT * FROM ' . $this->tableName . ' WHERE nome = :nome';
+    // BUSCAR CLIENTE PELO NOME
+    public function buscarNome($nomeBusca) {
+        // retornar linha(s) da tabela com o nome igual
+        $comandoSQL = "SELECT * FROM {$this->tableName} WHERE nome = :nome";
         try {
             $acesso = $this->conexao->prepare($comandoSQL);
             $acesso->bindParam(':nome', $nomeBusca); // passando o parâmetro para o comando SQL
@@ -54,12 +57,29 @@ class Cliente {
             return $acesso->fetchAll(PDO::FETCH_ASSOC); // retorna as linhas encontradas
         }
         catch (PDOException $erro) {
-            echo "Erro ao recuperar o cliente por nome: " . $erro->getMessage();
+            echo "Erro ao recuperar cliente(s) por nome: " . $erro->getMessage();
         }
     }
 
-    public function apagar($id) {
-        $comandoSQL = 'DELETE FROM ' . $this->tableName . ' WHERE id = :id';
+    // ALTERAR DADOS DO CLIENTE
+    public function alterar($id, $nome, $email, $telefone) {
+        $comandoSQL = "UPDATE {$this->tableName} SET nome = :param1, email = :param2, telefone = :param3";
+        try {
+            $acesso = $this->conexao->prepare($comandoSQL);
+            $acesso->bindParam(':param1', $nome);
+            $acesso->bindParam(':param2', $email);
+            $acesso->bindParam(':param3', $telefone);
+            $acesso->execute();
+            return $acesso->execute([$nome, $email, $telefone, $id]);    
+        }
+        catch (PDOException $erro) {
+            echo "Erro ao alterar cliente: " . $erro->getMessage();
+        }    
+    }
+
+    // APAGAR CLIENTE PELO ID
+    public function excluir($id) {
+        $comandoSQL = "DELETE FROM {$this->table_name} WHERE id = :id";
         try {
             $acesso = $this->conexao->prepare($comandoSQL);
             $acesso->bindParam(':id', $id);
@@ -68,32 +88,6 @@ class Cliente {
         catch (PDOException $erro) {
             echo "Erro ao excluir o cliente: " . $erro->getMessage();
         }
-    }
-
-    public function alterar($nome = null, $email = null, $telefone = null) {
-        $campos = []; // array de campos que foram alterados
-        $parametros = []; // array de valores recebidos
-        if ($nome) {
-            $campos[] = "nome = ?"; // ? -> valor placeholder do parametro query
-            $parametros[] = $nome;
-        }
-        if ($email) {
-            $campos[] = "email = ?";
-            $parametros[] = $email;
-        }
-        if ($telefone) {
-            $campos[] = "telefone = ?";
-            $parametros[] = $telefone;
-        }
-        // se nenhum campo for passado (array de campos está vazio)
-        if (count($campos) === 0) {
-            return false;
-        }
-        // query SQL criado dinamicamente
-        // implode() junto os valores da array $campos separados por vírgula
-        $comandoSQL = 'UPDATE ' . $this->tableName . ' SET ' . implode(", ", $campos) . ' WHERE id = ?';
-        $parametros[] = $id;
-    
     }
 }
 
